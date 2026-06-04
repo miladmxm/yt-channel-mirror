@@ -1,11 +1,6 @@
-#!/usr/bin/env node
-import { mkdir } from "node:fs/promises";
-import { resolve } from "node:path";
-import {
-  buildCatalog,
-  checkBinary,
-  downloadChannel,
-} from "./lib.ts";
+#!/usr/bin/env -S deno run --allow-run --allow-read --allow-write
+import { resolve } from "@std/path";
+import { buildCatalog, checkBinary, downloadChannel } from "./lib.ts";
 
 interface Args {
   channel?: string;
@@ -41,11 +36,11 @@ function parseArgs(argv: string[]): Args {
       case "--help":
       case "-h":
         printHelp();
-        process.exit(0);
+        Deno.exit(0);
       default:
         if (a.startsWith("-")) {
           console.error(`Unknown option: ${a}`);
-          process.exit(1);
+          Deno.exit(1);
         }
         // bare argument is treated as the channel URL
         args.channel = a;
@@ -75,13 +70,15 @@ Requirements: yt-dlp and ffmpeg must be installed and on your PATH.
 }
 
 async function main(): Promise<void> {
-  const args = parseArgs(process.argv.slice(2));
+  const args = parseArgs(Deno.args);
   const libraryDir = resolve(args.out);
-  await mkdir(libraryDir, { recursive: true });
+  await Deno.mkdir(libraryDir, { recursive: true });
 
   if (!args.catalogOnly) {
     if (!args.channel) {
-      console.error("Error: --channel <url> is required (or use --catalog-only).");
+      console.error(
+        "Error: --channel <url> is required (or use --catalog-only).",
+      );
       printHelp();
       process.exit(1);
     }
@@ -91,12 +88,16 @@ async function main(): Promise<void> {
       checkBinary("ffmpeg"),
     ]);
     if (!hasYtDlp) {
-      console.error("Error: yt-dlp not found on PATH. Install it: https://github.com/yt-dlp/yt-dlp#installation");
-      process.exit(1);
+      console.error(
+        "Error: yt-dlp not found on PATH. Install it: https://github.com/yt-dlp/yt-dlp#installation",
+      );
+      Deno.exit(1);
     }
     if (!hasFfmpeg) {
-      console.error("Error: ffmpeg not found on PATH. Install it: https://ffmpeg.org/download.html");
-      process.exit(1);
+      console.error(
+        "Error: ffmpeg not found on PATH. Install it: https://ffmpeg.org/download.html",
+      );
+      Deno.exit(1);
     }
 
     console.log(`Downloading "${args.channel}" into ${libraryDir} ...`);
@@ -108,12 +109,17 @@ async function main(): Promise<void> {
   }
 
   console.log("Building catalog.json ...");
-  const catalog = await buildCatalog(libraryDir, args.label ?? args.channel ?? null);
+  const catalog = await buildCatalog(
+    libraryDir,
+    args.label ?? args.channel ?? null,
+  );
   console.log(`Done. ${catalog.videos.length} video(s) in the library.`);
-  console.log(`Copy the folder "${libraryDir}" to your server, then run docker compose up -d.`);
+  console.log(
+    `Copy the folder "${libraryDir}" to your server, then run docker compose up -d.`,
+  );
 }
 
 main().catch((err) => {
   console.error(err instanceof Error ? err.message : err);
-  process.exit(1);
+  Deno.exit(1);
 });

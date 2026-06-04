@@ -1,8 +1,8 @@
-#!/usr/bin/env node
-import { resolve } from "node:path";
+#!/usr/bin/env -S deno run --allow-read --allow-write
+import { resolve } from "@std/path";
 import { buildCatalog, ensureLibrary } from "./lib.ts";
 
-const out = process.argv[2] ?? "./library";
+const out = Deno.args[0] ?? "./library";
 const libraryDir = resolve(out);
 
 ensureLibrary(libraryDir);

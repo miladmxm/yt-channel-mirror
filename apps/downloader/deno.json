@@ -1,0 +1,12 @@
+{
+  "tasks": {
+    "start": "deno run --allow-run --allow-read --allow-write src/cli.ts",
+    "rebuild-catalog": "deno run --allow-read --allow-write src/rebuild-catalog.ts"
+  },
+  "imports": {
+    "@std/path": "jsr:@std/path@1.1.5"
+  },
+  "fmt": {
+    "exclude": ["library"]
+  }
+}

@@ -1,39 +1,40 @@
-import { spawn } from "node:child_process";
-import { readdir, readFile, stat, writeFile } from "node:fs/promises";
-import { existsSync } from "node:fs";
-import { join, relative } from "node:path";
-import {
-  CATALOG_VERSION,
-  type Catalog,
-  type VideoMeta,
-} from "@oym/shared";
+import { join, relative } from "@std/path";
+import { CATALOG_VERSION, type Catalog, type VideoMeta } from "./video.ts";
 
 const VIDEO_EXTS = [".mp4", ".m4v", ".webm", ".mkv"];
 const IMAGE_EXTS = [".jpg", ".jpeg", ".png", ".webp"];
 
 /** Spawn a command, streaming its stdio to the parent. Resolves on exit code 0. */
-export function run(
+export async function run(
   cmd: string,
   args: string[],
   opts: { cwd?: string } = {},
 ): Promise<void> {
-  return new Promise((resolve, reject) => {
-    const child = spawn(cmd, args, { stdio: "inherit", cwd: opts.cwd });
-    child.on("error", reject);
-    child.on("close", (code) => {
-      if (code === 0) resolve();
-      else reject(new Error(`${cmd} exited with code ${code}`));
-    });
+  const command = new Deno.Command(cmd, {
+    args,
+    stdin: "inherit",
+    stdout: "inherit",
+    stderr: "inherit",
+    cwd: opts.cwd,
   });
+  const child = command.spawn();
+  const { code } = await child.status;
+  if (code !== 0) throw new Error(`${cmd} exited with code ${code}`);
 }
 
-/** Verify a binary is on PATH by invoking it with --version. */
+/** Verify a binary is on PATH. */
 export async function checkBinary(cmd: string): Promise<boolean> {
-  return new Promise((resolve) => {
-    const child = spawn(cmd, ["--version"], { stdio: "ignore" });
-    child.on("error", () => resolve(false));
-    child.on("close", (code) => resolve(code === 0));
-  });
+  try {
+    const command = new Deno.Command("which", {
+      args: [cmd],
+      stdout: "null",
+      stderr: "null",
+    });
+    const { code } = await command.output();
+    return code === 0;
+  } catch {
+    return false;
+  }
 }
 
 export interface DownloadOptions {
@@ -93,13 +94,19 @@ export async function buildCatalog(
   libraryDir: string,
   channelLabel: string | null,
 ): Promise<Catalog> {
-  const entries = await readdir(libraryDir, { withFileTypes: true });
+  const entries: Deno.DirEntry[] = [];
+  for await (const entry of Deno.readDir(libraryDir)) {
+    entries.push(entry);
+  }
   const videos: VideoMeta[] = [];
 
   for (const entry of entries) {
-    if (!entry.isDirectory()) continue;
+    if (!entry.isDirectory) continue;
     const dir = join(libraryDir, entry.name);
-    const files = await readdir(dir);
+    const files: string[] = [];
+    for await (const f of Deno.readDir(dir)) {
+      files.push(f.name);
+    }
 
     const videoFile = findFileByExt(files, VIDEO_EXTS);
     if (!videoFile) continue; // incomplete download, skip
@@ -110,16 +117,17 @@ export async function buildCatalog(
     let info: Record<string, unknown> = {};
     if (infoFile) {
       try {
-        info = JSON.parse(await readFile(join(dir, infoFile), "utf8"));
+        info = JSON.parse(await Deno.readTextFile(join(dir, infoFile)));
       } catch {
         // ignore malformed info json; fall back to defaults below
       }
     }
 
     const videoPath = join(dir, videoFile);
-    const sizeBytes = (await stat(videoPath)).size;
+    const sizeBytes = (await Deno.stat(videoPath)).size;
 
-    const rawDate = typeof info.upload_date === "string" ? info.upload_date : null;
+    const rawDate =
+      typeof info.upload_date === "string" ? info.upload_date : null;
     const uploadDate =
       rawDate && /^\d{8}$/.test(rawDate)
         ? `${rawDate.slice(0, 4)}-${rawDate.slice(4, 6)}-${rawDate.slice(6, 8)}`
@@ -148,17 +156,18 @@ export async function buildCatalog(
     videos,
   };
 
-  await writeFile(
+  await Deno.writeTextFile(
     join(libraryDir, "catalog.json"),
     JSON.stringify(catalog, null, 2),
-    "utf8",
   );
 
   return catalog;
 }
 
 export function ensureLibrary(libraryDir: string): void {
-  if (!existsSync(libraryDir)) {
+  try {
+    Deno.statSync(libraryDir);
+  } catch {
     throw new Error(`Library directory does not exist: ${libraryDir}`);
   }
 }
