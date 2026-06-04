@@ -1,14 +1,16 @@
 {
   "version": "5",
   "specifiers": {
-    "jsr:@danet/handlebars@^0.0.3": "0.0.3",
+    "jsr:@danet/handlebars@0.0.3": "0.0.3",
     "jsr:@oak/commons@1": "1.0.1",
-    "jsr:@oak/oak@^17.2.0": "17.2.0",
+    "jsr:@oak/oak@17.2.0": "17.2.0",
     "jsr:@std/assert@1": "1.0.19",
     "jsr:@std/bytes@1": "1.0.6",
+    "jsr:@std/cli@1.0.30": "1.0.30",
     "jsr:@std/crypto@1": "1.1.0",
     "jsr:@std/encoding@1": "1.0.10",
     "jsr:@std/encoding@^1.0.10": "1.0.10",
+    "jsr:@std/fmt@^1.0.10": "1.0.10",
     "jsr:@std/fs@1.0.4": "1.0.4",
     "jsr:@std/http@1": "1.1.1",
     "jsr:@std/internal@^1.0.14": "1.0.14",
@@ -58,11 +60,21 @@
     "@std/bytes@1.0.6": {
       "integrity": "f6ac6adbd8ccd99314045f5703e23af0a68d7f7e58364b47d2c7f408aeb5820a"
     },
+    "@std/cli@1.0.30": {
+      "integrity": "769446536522d0417d7127ebcabcafac1ab0ce6766d0eb3fca1d36326fe98d13",
+      "dependencies": [
+        "jsr:@std/fmt",
+        "jsr:@std/internal"
+      ]
+    },
     "@std/crypto@1.1.0": {
       "integrity": "b8d6d0a6377a32b213af2661ed7bf1062d94feac0c57def5526a8e74a95c3ec8"
     },
     "@std/encoding@1.0.10": {
       "integrity": "8783c6384a2d13abd5e9e87a7ae0520a30e9f56aeeaa3bdf910a3eaaf5c811a1"
+    },
+    "@std/fmt@1.0.10": {
+      "integrity": "90dfba288802ac6de82fb31d0917eb9e4450b9925b954d5e51fc29ac07419db5"
     },
     "@std/fs@1.0.4": {
       "integrity": "2907d32d8d1d9e540588fd5fe0ec21ee638134bd51df327ad4e443aaef07123c",
@@ -241,13 +253,14 @@
   },
   "workspace": {
     "dependencies": [
+      "jsr:@std/cli@1.0.30",
       "jsr:@std/path@1.1.5"
     ],
     "members": {
       "apps/server": {
         "dependencies": [
-          "jsr:@danet/handlebars@^0.0.3",
-          "jsr:@oak/oak@^17.2.0"
+          "jsr:@danet/handlebars@0.0.3",
+          "jsr:@oak/oak@17.2.0"
         ]
       }
     }

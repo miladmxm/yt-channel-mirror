@@ -1,5 +1,6 @@
 #!/usr/bin/env -S deno run --allow-run --allow-read --allow-write
 import { resolve } from "@std/path";
+import { parseArgs } from "@std/cli/parse-args";
 import { buildCatalog, checkBinary, downloadChannel } from "./lib.ts";
 
 interface Args {
@@ -10,43 +11,36 @@ interface Args {
   catalogOnly: boolean;
 }
 
-function parseArgs(argv: string[]): Args {
-  const args: Args = { out: "./library", catalogOnly: false };
-  for (let i = 0; i < argv.length; i++) {
-    const a = argv[i];
-    switch (a) {
-      case "--channel":
-      case "-c":
-        args.channel = argv[++i];
-        break;
-      case "--out":
-      case "-o":
-        args.out = argv[++i];
-        break;
-      case "--limit":
-      case "-n":
-        args.limit = Number(argv[++i]);
-        break;
-      case "--label":
-        args.label = argv[++i];
-        break;
-      case "--catalog-only":
-        args.catalogOnly = true;
-        break;
-      case "--help":
-      case "-h":
-        printHelp();
-        Deno.exit(0);
-      default:
-        if (a.startsWith("-")) {
-          console.error(`Unknown option: ${a}`);
-          Deno.exit(1);
-        }
-        // bare argument is treated as the channel URL
-        args.channel = a;
-    }
+function parseCliArgs(argv: string[]): Args {
+  const parsed = parseArgs(argv, {
+    string: ["channel", "out", "limit", "label"],
+    boolean: ["catalog-only", "help"],
+    alias: { c: "channel", o: "out", n: "limit", h: "help" },
+    default: { out: "./library", "catalog-only": false },
+    unknown: (arg) => {
+      if (arg.startsWith("-")) {
+        console.error(`Unknown option: ${arg}`);
+        Deno.exit(1);
+      }
+      return true;
+    },
+  });
+
+  if (parsed.help) {
+    printHelp();
+    Deno.exit(0);
   }
-  return args;
+
+  const channel =
+    parsed.channel ?? (parsed._.length > 0 ? String(parsed._[0]) : undefined);
+
+  return {
+    channel,
+    out: parsed.out,
+    limit: parsed.limit !== undefined ? Number(parsed.limit) : undefined,
+    label: parsed.label,
+    catalogOnly: parsed["catalog-only"],
+  };
 }
 
 function printHelp(): void {
@@ -70,7 +64,7 @@ Requirements: yt-dlp and ffmpeg must be installed and on your PATH.
 }
 
 async function main(): Promise<void> {
-  const args = parseArgs(Deno.args);
+  const args = parseCliArgs(Deno.args);
   const libraryDir = resolve(args.out);
   await Deno.mkdir(libraryDir, { recursive: true });
 
@@ -80,25 +74,10 @@ async function main(): Promise<void> {
         "Error: --channel <url> is required (or use --catalog-only).",
       );
       printHelp();
-      process.exit(1);
+      Deno.exit(1);
     }
 
-    const [hasYtDlp, hasFfmpeg] = await Promise.all([
-      checkBinary("yt-dlp"),
-      checkBinary("ffmpeg"),
-    ]);
-    if (!hasYtDlp) {
-      console.error(
-        "Error: yt-dlp not found on PATH. Install it: https://github.com/yt-dlp/yt-dlp#installation",
-      );
-      Deno.exit(1);
-    }
-    if (!hasFfmpeg) {
-      console.error(
-        "Error: ffmpeg not found on PATH. Install it: https://ffmpeg.org/download.html",
-      );
-      Deno.exit(1);
-    }
+    await ensureDependencies();
 
     console.log(`Downloading "${args.channel}" into ${libraryDir} ...`);
     await downloadChannel({
@@ -119,7 +98,32 @@ async function main(): Promise<void> {
   );
 }
 
-main().catch((err) => {
-  console.error(err instanceof Error ? err.message : err);
+function panic(msg: string): never {
+  console.error(msg);
   Deno.exit(1);
-});
+}
+
+async function ensureDependencies() {
+  const [hasYtDlp, hasFfmpeg] = await Promise.all([
+    checkBinary("yt-dlp"),
+    checkBinary("ffmpeg"),
+  ]);
+
+  if (!hasYtDlp) {
+    panic(
+      "Error: yt-dlp not found on PATH. Install it: https://github.com/yt-dlp/yt-dlp#installation",
+    );
+  }
+
+  if (!hasFfmpeg) {
+    panic(
+      "Error: ffmpeg not found on PATH. Install it: https://ffmpeg.org/download.html",
+    );
+  }
+}
+
+try {
+  await main();
+} catch (err) {
+  panic(err instanceof Error ? err.message : String(err));
+}

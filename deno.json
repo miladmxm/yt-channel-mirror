@@ -1,6 +1,7 @@
 {
   "workspace": ["./apps/downloader", "./apps/server"],
   "imports": {
+    "@std/cli": "jsr:@std/cli@1.0.30",
     "@std/path": "jsr:@std/path@1.1.5"
   },
   "fmt": {
