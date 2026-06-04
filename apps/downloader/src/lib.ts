@@ -22,10 +22,9 @@ export async function run(
   if (code !== 0) throw new Error(`${cmd} exited with code ${code}`);
 }
 
-/** Verify a binary is on PATH. */
 export async function checkBinary(cmd: string): Promise<boolean> {
   try {
-    const command = new Deno.Command("which", {
+    const command = new Deno.Command("test", {
       args: [cmd],
       stdout: "null",
       stderr: "null",
@@ -94,14 +93,11 @@ export async function buildCatalog(
   libraryDir: string,
   channelLabel: string | null,
 ): Promise<Catalog> {
-  const entries: Deno.DirEntry[] = [];
-  for await (const entry of Deno.readDir(libraryDir)) {
-    entries.push(entry);
-  }
   const videos: VideoMeta[] = [];
 
-  for (const entry of entries) {
+  for await (const entry of Deno.readDir(libraryDir)) {
     if (!entry.isDirectory) continue;
+
     const dir = join(libraryDir, entry.name);
     const files: string[] = [];
     for await (const f of Deno.readDir(dir)) {
