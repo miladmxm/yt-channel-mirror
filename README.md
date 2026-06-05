@@ -4,10 +4,11 @@ Download your YouTube channel on an internet-connected machine, copy the
 `library/` folder to an offline box, and let your community browse and stream
 videos from any browser.
 
-
 ## Prerequisites
 
-- **Download machine**: [Deno 2+](https://deno.com), [`yt-dlp`](https://github.com/yt-dlp/yt-dlp#installation), and [`ffmpeg`](https://ffmpeg.org/download.html) on your PATH.
+- **Download machine**: [Deno 2+](https://deno.com),
+  [`yt-dlp`](https://github.com/yt-dlp/yt-dlp#installation), and
+  [`ffmpeg`](https://ffmpeg.org/download.html) on your PATH.
 - **Offline server**: Docker + Docker Compose.
 
 ## Step 1 — Download your channel
@@ -18,7 +19,8 @@ videos from any browser.
 
 Re-running only fetches new uploads (tracked via `library/archive.txt`).
 
-Flags: `--out <dir>` (default `./library`), `--catalog-only` (rebuild index without downloading).
+Flags: `--out <dir>` (default `./library`), `--catalog-only` (rebuild index
+without downloading).
 
 ## Step 2 — Copy the library to the server
 
@@ -32,5 +34,5 @@ scp -r ./library user@server:/opt/oym/library
 docker compose up -d --build
 ```
 
-Browse and watch. The server reloads `catalog.json` automatically when the file changes.
-
+Browse and watch. The server reloads `catalog.json` automatically when the file
+changes.

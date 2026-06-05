@@ -1,5 +1,5 @@
 import { join, relative } from "@std/path";
-import { CATALOG_VERSION, type Catalog, type VideoMeta } from "./video.ts";
+import { type Catalog, CATALOG_VERSION, type VideoMeta } from "./video.ts";
 
 const VIDEO_EXTS = [".mp4", ".m4v", ".webm", ".mkv"];
 const IMAGE_EXTS = [".jpg", ".jpeg", ".png", ".webp"];
@@ -122,19 +122,20 @@ export async function buildCatalog(
     const videoPath = join(dir, videoFile);
     const sizeBytes = (await Deno.stat(videoPath)).size;
 
-    const rawDate =
-      typeof info.upload_date === "string" ? info.upload_date : null;
-    const uploadDate =
-      rawDate && /^\d{8}$/.test(rawDate)
-        ? `${rawDate.slice(0, 4)}-${rawDate.slice(4, 6)}-${rawDate.slice(6, 8)}`
-        : null;
+    const rawDate = typeof info.upload_date === "string"
+      ? info.upload_date
+      : null;
+    const uploadDate = rawDate && /^\d{8}$/.test(rawDate)
+      ? `${rawDate.slice(0, 4)}-${rawDate.slice(4, 6)}-${rawDate.slice(6, 8)}`
+      : null;
 
     videos.push({
       id: typeof info.id === "string" ? info.id : entry.name,
       title: typeof info.title === "string" ? info.title : entry.name,
       description: typeof info.description === "string" ? info.description : "",
-      durationSec:
-        typeof info.duration === "number" ? Math.round(info.duration) : 0,
+      durationSec: typeof info.duration === "number"
+        ? Math.round(info.duration)
+        : 0,
       uploadDate,
       file: relative(libraryDir, videoPath),
       thumb: thumbFile ? relative(libraryDir, join(dir, thumbFile)) : null,

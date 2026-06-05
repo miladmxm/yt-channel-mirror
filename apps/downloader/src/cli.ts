@@ -31,8 +31,8 @@ function parseCliArgs(argv: string[]): Args {
     Deno.exit(0);
   }
 
-  const channel =
-    parsed.channel ?? (parsed._.length > 0 ? String(parsed._[0]) : undefined);
+  const channel = parsed.channel ??
+    (parsed._.length > 0 ? String(parsed._[0]) : undefined);
 
   return {
     channel,
