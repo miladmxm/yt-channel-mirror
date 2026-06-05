@@ -1,5 +1,5 @@
 import { join } from "@std/path";
-import { Catalog, VideoMeta } from "./video.ts";
+import type { Catalog, VideoMeta } from "./video.ts";
 
 /**
  * Loads catalog.json from the library and caches it, reloading automatically

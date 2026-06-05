@@ -58,7 +58,7 @@ router.get("/", async (ctx) => {
 
   const catalog = await store.getCatalog();
   const q = query.toLowerCase();
-  let videos = q
+  const videos = q
     ? catalog.videos.filter((v) => v.title.toLowerCase().includes(q))
     : [...catalog.videos];
 
