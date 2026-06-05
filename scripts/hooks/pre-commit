@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+
+function format_files() {
+  echo "$1" | xargs deno fmt
+  echo "$1" | xargs deno lint --fix
+  echo "$1" | xargs git add
+}
+
+function verbose {
+  [[ -n "$GIT_HOOK_VERBOSE" ]] && echo -e "$1"
+}
+
+BOLD=$(tput bold)
+GREEN=$(tput setaf 2)
+RESET=$(tput sgr0)
+
+FILES=$(git diff --cached --name-only --diff-filter=ACM)
+EXTENSIONS="ts|js|css|html"
+FILTERED_FILES=$(echo "$FILES" | grep -E "\.($EXTENSIONS)$" || true)
+
+if [ -z "$FILTERED_FILES" ]; then
+  echo "${BOLD}[PRECOMMIT]:${RESET} No files to format."
+  exit 0
+fi
+
+verbose "${BOLD}[PRECOMMIT]:${RESET} ${BOLD}${GREEN}Checking files:${RESET}\n$FILTERED_FILES\n"
+format_files "$FILTERED_FILES"

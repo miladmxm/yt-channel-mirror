@@ -1,0 +1,38 @@
+#!/usr/bin/env bash
+
+if [[ ! -d .git ]]; then
+  exit 0
+fi
+
+if
+  [[ -n "$USE_HOOKS" ]] && [[ "$USE_HOOKS" != "0" ]] ||
+  [[ -n "$CI" ]] && [[ "$CI" != "0" ]]
+then
+  exit 0
+fi
+
+HOOKS=(
+  applypatch-msg
+  commit-msg
+  fsmonitor-watchman
+  post-update
+  pre-applypatch
+  pre-commit
+  pre-merge-commit
+  pre-push
+  pre-rebase
+  pre-receive
+  prepare-commit-msg
+  push-to-checkout
+  sendemail-validate
+  update
+)
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+for hook in "${HOOKS[@]}"; do
+  if [[ -f "${SCRIPT_DIR}/${hook}" ]]; then
+    echo "Linking ${hook} hook"
+    ln -sf "${SCRIPT_DIR}/${hook}" ".git/hooks/${hook}"
+  fi
+done

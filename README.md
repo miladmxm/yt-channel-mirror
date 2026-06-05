@@ -36,3 +36,8 @@ docker compose up -d --build
 
 Browse and watch. The server reloads `catalog.json` automatically when the file
 changes.
+
+## Development
+
+Please format and lint code before committing using `deno fmt` and `deno lint`
+You can also register git hooks to run those commands automatically when committing and pushing by `deno task use-hooks`.

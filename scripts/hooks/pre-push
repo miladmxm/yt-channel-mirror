@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+
+function verbose {
+  [[ -n "$GIT_HOOK_VERBOSE" ]] && echo -e "$1"
+}
+
+BOLD=$(tput bold)
+GREEN=$(tput setaf 2)
+RESET=$(tput sgr0)
+
+verbose "${BOLD}[PREPUSH]:${RESET} ${BOLD}${GREEN}Running tests:${RESET}\n"
+
+deno check
