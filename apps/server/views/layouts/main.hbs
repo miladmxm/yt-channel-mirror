@@ -6,7 +6,34 @@
     <title>{{title}}</title>
     <link rel="stylesheet" href="/styles.css" />
   </head>
+
   <body>
-    {{{body}}}
+    <div class="page">
+      <header class="topbar">
+        <a class="brand" href="/">
+          <span class="brand-mark">▶</span>
+          <div>
+            <h1>FullstacksJS</h1>
+            <p class="sub">{{count}} videos available offline</p>
+          </div>
+        </a>
+        <form class="controls" method="get" action="/">
+          <input
+            class="search"
+            type="search"
+            name="q"
+            placeholder="Search videos…"
+            value="{{query}}"
+          />
+          <select class="sort" name="sort" onchange="this.form.submit()">
+            <option value="newest" {{#if (eq sort "newest")}}selected{{/if}}>Newest</option>
+            <option value="oldest" {{#if (eq sort "oldest")}}selected{{/if}}>Oldest</option>
+            <option value="title" {{#if (eq sort "title")}}selected{{/if}}>Title A–Z</option>
+          </select>
+          <button class="sort" type="submit">Search</button>
+        </form>
+      </header>
+      {{{body}}}
+    </div>
   </body>
 </html>
