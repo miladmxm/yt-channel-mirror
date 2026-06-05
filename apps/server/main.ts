@@ -119,8 +119,18 @@ router.get("/media/:id/thumb", async (ctx) => {
   await send(ctx, video.thumb, { root: libraryDir });
 });
 
-router.get("/styles.css", async (ctx) => {
-  await send(ctx, "styles.css", { root: resolve(dirname, "static") });
+router.get("/static/:path+", async (ctx) => {
+  if (!ctx.params.path) {
+    ctx.response.status = 404;
+    return;
+  }
+
+  if (ctx.params.path.includes("..")) {
+    ctx.response.status = 404;
+    return;
+  }
+
+  await send(ctx, ctx.params.path, { root: resolve(dirname, "static") });
 });
 
 const app = new Application();
