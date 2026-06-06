@@ -1,6 +1,7 @@
 {
   "workspace": ["./apps/downloader", "./apps/server"],
   "tasks": {
+    "oym-dl": "./apps/downloader/src/cli.ts",
     "use-hooks": "./scripts/hooks/init"
   },
   "imports": {
